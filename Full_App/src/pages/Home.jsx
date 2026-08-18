@@ -10,12 +10,19 @@ export default function Home() {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const fetchFeed = async () => {
+        const fetchFeed = async (attempt = 1) => {
             try {
                 const res = await projectApi.getPublicProjects();
                 setProjects(res.projects);
+                setError(null);
             } catch (err) {
-                setError(err.message);
+                if (attempt < 3) {
+                    // Render free tier wakes up slowly — retry up to 3 times
+                    setError('Server is waking up, please wait...');
+                    setTimeout(() => fetchFeed(attempt + 1), 5000);
+                } else {
+                    setError(err.message);
+                }
             } finally {
                 setLoading(false);
             }
