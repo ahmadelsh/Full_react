@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { generatorApi, projectApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import CodePreviewer from '../components/CodePreviewer';
-import { Play, Save, ShoppingBag, BookOpen, Columns, Dumbbell, Sparkles } from 'lucide-react';
+import { Play, Save, ShoppingBag, BookOpen, Columns, Dumbbell, Sparkles, Code2, Settings } from 'lucide-react';
 
 const PRESETS = [
     {
@@ -108,6 +108,7 @@ export default function GeneratorPage() {
     const [isSaving, setIsSaving] = useState(false);
     const [isPublished, setIsPublished] = useState(true);
     const [message, setMessage] = useState('');
+    const [mobileTab, setMobileTab] = useState('input'); // 'input' | 'preview'
 
     const handleGenerate = async () => {
         if (!schema.trim()) return;
@@ -117,6 +118,7 @@ export default function GeneratorPage() {
             const res = await generatorApi.generateCode(schema);
             setGeneratedCode(res.data);
             setMessage('Code generated successfully!');
+            setMobileTab('preview'); // Auto-switch to preview on mobile after generating
         } catch (err) {
             setMessage(`Error: ${err.message}`);
         } finally {
@@ -152,16 +154,35 @@ export default function GeneratorPage() {
     };
 
     return (
-        <div className="max-w-screen-2xl mx-auto p-4 h-[calc(100vh-80px)] flex flex-col">
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold">DevAi Studio</h2>
-                {message && <span className="text-sm font-medium text-brand-500">{message}</span>}
+        <div className="max-w-screen-2xl mx-auto p-3 md:p-4 flex flex-col h-[calc(100vh-80px)]">
+            {/* Header */}
+            <div className="flex justify-between items-center mb-3">
+                <h2 className="text-xl md:text-2xl font-bold">DevAi Studio</h2>
+                {message && <span className="text-xs md:text-sm font-medium text-brand-500 text-right max-w-[60%]">{message}</span>}
             </div>
 
-            <div className="flex gap-4 h-full overflow-hidden pb-4">
+            {/* Mobile Tab Switcher — only visible on small screens */}
+            <div className="flex lg:hidden mb-3 bg-gray-100 rounded-lg p-1">
+                <button
+                    onClick={() => setMobileTab('input')}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-semibold transition-all ${mobileTab === 'input' ? 'bg-white shadow text-brand-700' : 'text-gray-500'}`}
+                >
+                    <Settings size={15} /> Input
+                </button>
+                <button
+                    onClick={() => setMobileTab('preview')}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-semibold transition-all ${mobileTab === 'preview' ? 'bg-white shadow text-brand-700' : 'text-gray-500'}`}
+                >
+                    <Code2 size={15} /> Preview
+                    {generatedCode && <span className="bg-brand-500 text-white text-xs px-1.5 py-0.5 rounded-full">✓</span>}
+                </button>
+            </div>
+
+            {/* Main Layout */}
+            <div className="flex gap-4 flex-1 overflow-hidden">
                 {/* Left Pane: Input */}
-                <div className="w-1/3 flex flex-col gap-4 overflow-y-auto pr-1">
-                    {/* Schema presets list */}
+                <div className={`${mobileTab === 'input' ? 'flex' : 'hidden'} lg:flex w-full lg:w-1/3 flex-col gap-4 overflow-y-auto pr-1`}>
+                    {/* Schema presets */}
                     <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
                         <label className="font-semibold mb-2 block text-sm flex items-center gap-1">
                             <Sparkles className="h-4 w-4 text-indigo-500" />
@@ -184,7 +205,7 @@ export default function GeneratorPage() {
                         </div>
                     </div>
 
-                    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex-1 flex flex-col min-h-[300px]">
+                    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex-1 flex flex-col min-h-[250px]">
                         <label className="font-semibold mb-2 block text-sm">1. Describe Your Schema (SQL or JSON)</label>
                         <textarea
                             className="flex-1 w-full p-3 border rounded-md font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand-500"
@@ -195,7 +216,7 @@ export default function GeneratorPage() {
                         <button
                             onClick={handleGenerate}
                             disabled={isGenerating || !schema.trim()}
-                            className="mt-4 w-full bg-brand-900 text-white py-2 rounded-md hover:bg-brand-800 disabled:opacity-50 flex justify-center items-center gap-2 transition-colors font-semibold"
+                            className="mt-4 w-full bg-brand-900 text-white py-2.5 rounded-md hover:bg-brand-800 disabled:opacity-50 flex justify-center items-center gap-2 transition-colors font-semibold"
                         >
                             <Play size={18} /> {isGenerating ? 'Analyzing & Building...' : 'Generate Architecture'}
                         </button>
@@ -210,7 +231,6 @@ export default function GeneratorPage() {
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                         />
-
                         <div className="mb-4">
                             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1.5">Privacy Setting</label>
                             <select
@@ -222,7 +242,6 @@ export default function GeneratorPage() {
                                 <option value="private">🔒 Private (Only Visible on Profile)</option>
                             </select>
                         </div>
-
                         <button
                             onClick={handlePublish}
                             disabled={!generatedCode || !title.trim() || isSaving}
@@ -233,8 +252,8 @@ export default function GeneratorPage() {
                     </div>
                 </div>
 
-                {/* Right Pane: Output */}
-                <div className="w-2/3 h-full">
+                {/* Right Pane: Preview */}
+                <div className={`${mobileTab === 'preview' ? 'flex' : 'hidden'} lg:flex w-full lg:w-2/3 h-full flex-col`}>
                     <CodePreviewer codeData={generatedCode} projectName={title || 'generated-app'} />
                 </div>
             </div>
