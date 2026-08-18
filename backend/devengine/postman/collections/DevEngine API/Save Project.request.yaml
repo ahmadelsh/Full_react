@@ -1,0 +1,32 @@
+$kind: http-request
+method: POST
+url: 'http://localhost:5000/api/projects'
+order: 3000
+headers:
+  - key: Authorization
+    value: 'Bearer <paste_your_access_token_here>'
+body:
+  type: json
+  content: |-
+    {
+      "user_id": "<paste_your_user_id_here>",
+      "title": "My First DevEngine Project",
+      "description": "A project generated from my SQL schema",
+      "raw_schema_json": {
+        "tables": [
+          {
+            "name": "users",
+            "columns": [
+              { "name": "id", "type": "uuid", "primaryKey": true },
+              { "name": "email", "type": "varchar(255)" },
+              { "name": "username", "type": "varchar(100)" }
+            ]
+          }
+        ]
+      },
+      "generated_code_json": {
+        "react": "// Generated React code here",
+        "express": "// Generated Express code here"
+      },
+      "is_published": false
+    }

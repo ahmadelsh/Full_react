@@ -1,0 +1,33 @@
+$kind: http-request
+method: POST
+url: 'http://localhost:5000/api/generate'
+order: 2000
+body:
+  type: json
+  content: |-
+    {
+      "schema": {
+        "tables": [
+          {
+            "name": "users",
+            "columns": [
+              { "name": "id", "type": "uuid", "primaryKey": true },
+              { "name": "email", "type": "varchar(255)", "unique": true },
+              { "name": "username", "type": "varchar(100)" },
+              { "name": "created_at", "type": "timestamp" }
+            ]
+          },
+          {
+            "name": "projects",
+            "columns": [
+              { "name": "id", "type": "uuid", "primaryKey": true },
+              { "name": "user_id", "type": "uuid", "foreignKey": "users.id" },
+              { "name": "title", "type": "varchar(255)" },
+              { "name": "description", "type": "text" },
+              { "name": "is_published", "type": "boolean" },
+              { "name": "created_at", "type": "timestamp" }
+            ]
+          }
+        ]
+      }
+    }
