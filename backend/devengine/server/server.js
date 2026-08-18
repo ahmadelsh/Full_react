@@ -11,22 +11,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-const allowedOrigins = [
-    'https://full-react-mu.vercel.app',
-    'http://localhost:5173',
-    'http://localhost:3000',
-];
-app.use(cors({
-    origin: (origin, callback) => {
-        // Allow requests with no origin (mobile apps, Postman, etc.)
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    credentials: true,
-}));
+app.use(cors({ origin: '*' })); // Allow all origins
 app.use(express.json({ limit: '10mb' }));
 app.use(morgan('dev'));
 

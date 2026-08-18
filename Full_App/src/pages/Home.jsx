@@ -16,12 +16,12 @@ export default function Home() {
                 setProjects(res.projects);
                 setError(null);
             } catch (err) {
-                if (attempt < 3) {
-                    // Render free tier wakes up slowly — retry up to 3 times
-                    setError('Server is waking up, please wait...');
-                    setTimeout(() => fetchFeed(attempt + 1), 5000);
+                if (attempt < 6) {
+                    // Render free tier can take up to 60s to wake — retry every 10s
+                    setError(`Server is waking up, please wait... (${attempt}/6)`);
+                    setTimeout(() => fetchFeed(attempt + 1), 10000);
                 } else {
-                    setError(err.message);
+                    setError('Server took too long to respond. Please refresh the page.');
                 }
             } finally {
                 setLoading(false);
