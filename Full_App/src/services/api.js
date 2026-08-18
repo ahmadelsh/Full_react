@@ -1,7 +1,12 @@
 import axios from 'axios';
 
+// Automatically use Render in production, localhost in dev
+const BASE_URL = import.meta.env.MODE === 'production'
+    ? 'https://full-react.onrender.com/api'
+    : 'http://localhost:5000/api';
+
 const API = axios.create({
-    baseURL: 'http://localhost:5000/api', // Points to your Express backend
+    baseURL: BASE_URL,
 });
 
 // Automatically attach the auth token to requests if it exists
@@ -22,7 +27,7 @@ export const authApi = {
     setPassword: (email, password, username) => API.post('/auth/set-password', { email, password, username }),
     updateProfile: (username, password) => API.put('/auth/update-profile', { username, password }),
 };
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = BASE_URL;
 
 const getAuthHeaders = () => {
     const token = localStorage.getItem('token');
