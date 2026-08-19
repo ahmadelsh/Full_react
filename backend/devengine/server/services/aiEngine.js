@@ -3,7 +3,10 @@ require('dotenv').config();
 
 /**
  * Ingests a raw database schema and outputs a structured React/Express JSON codebase.
+ * Supports both standard Google AI Studio keys (AIza...) and Google OAuth/Access tokens (AQ...).
+ * 
  * @param {string|object} schema - The raw DB schema or JSON
+ * @param {string} [apiKey] - Optional custom API key or token
  * @returns {Promise<object>} - The generated code JSON
  */
 async function generateApplicationCode(schema, apiKey) {
@@ -11,8 +14,6 @@ async function generateApplicationCode(schema, apiKey) {
     if (!key) {
         throw new Error('Server Gemini API key is not configured. Please set GEMINI_API_KEY on the backend.');
     }
-
-    const genAI = new GoogleGenerativeAI(key);
 
     const prompt = `
 You are an expert Principal Full-Stack Architect.
@@ -36,7 +37,6 @@ Generate modern React (functional components, hooks, Tailwind CSS classes) and N
 Ensure all code is production-ready.
 `;
 
-    // List of models to try in order
     const modelsToTry = [
         'gemini-1.5-flash',
         'gemini-2.0-flash',
@@ -47,43 +47,74 @@ Ensure all code is production-ready.
 
     let lastError = null;
 
+    // Helper to cleanly parse AI JSON output
+    const parseJsonOutput = (text) => {
+        const cleaned = (text || '')
+            .replace(/^```json\s*/i, '')
+            .replace(/^```\s*/i, '')
+            .replace(/\s*```$/i, '')
+            .trim();
+        return JSON.parse(cleaned);
+    };
+
+    // If key starts with AQ. or is an OAuth access token, use direct REST API with Bearer Authorization header
+    const isOAuthToken = key.startsWith('AQ.') || key.startsWith('ya29.');
+
     for (const modelName of modelsToTry) {
         try {
-            console.log(`[AI Engine] Attempting generation with model: ${modelName}...`);
-            const model = genAI.getGenerativeModel({ model: modelName });
-            
-            const result = await model.generateContent({
-                contents: [{ role: 'user', parts: [{ text: prompt }] }],
-                generationConfig: {
-                    temperature: 0.2,
+            console.log(`[AI Engine] Attempting generation with model: ${modelName} (${isOAuthToken ? 'Bearer OAuth' : 'API Key'})...`);
+
+            if (isOAuthToken) {
+                // Direct REST call with Bearer header (for AQ. and OAuth tokens)
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${key}`
+                    },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        generationConfig: { temperature: 0.2 }
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error?.message || `HTTP ${response.status}: Failed to generate with model ${modelName}`);
                 }
-            });
 
-            const responseText = result.response.text();
-            console.log(`[AI Engine] Success with ${modelName}!`);
-            
-            // Clean markdown code fences if present
-            const cleanedText = responseText
-                .replace(/^```json\s*/i, '')
-                .replace(/^```\s*/i, '')
-                .replace(/\s*```$/i, '')
-                .trim();
+                const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (!responseText) {
+                    throw new Error('Empty response received from Gemini API');
+                }
 
-            return JSON.parse(cleanedText);
+                console.log(`[AI Engine] Success with ${modelName} via Bearer token!`);
+                return parseJsonOutput(responseText);
+
+            } else {
+                // Standard GoogleGenerativeAI SDK (for AIza... keys)
+                const genAI = new GoogleGenerativeAI(key);
+                const model = genAI.getGenerativeModel({ model: modelName });
+                
+                const result = await model.generateContent({
+                    contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                    generationConfig: { temperature: 0.2 }
+                });
+
+                const responseText = result.response.text();
+                console.log(`[AI Engine] Success with ${modelName} via GoogleGenerativeAI!`);
+                return parseJsonOutput(responseText);
+            }
+
         } catch (error) {
-            console.error(`[AI Engine] Model ${modelName} failed:`, error.message);
+            console.error(`[AI Engine] Model ${modelName} attempt failed:`, error.message);
             lastError = error;
-
-            if (error.message.includes('API key not valid') || error.message.includes('API_KEY_INVALID') || error.message.includes('401')) {
-                throw new Error('Your Gemini API key is invalid. Please get a valid key starting with "AIza..." from Google AI Studio.');
-            }
-            if (error.message.includes('404') && error.message.includes('not found for API version')) {
-                throw new Error('This API key does not have access to the Generative Language API. Please create a key from https://aistudio.google.com/app/apikey');
-            }
         }
     }
 
-    throw new Error(lastError?.message || 'Failed to generate code with Gemini. Please verify your API key at Google AI Studio.');
+    throw new Error(lastError?.message || 'Failed to generate code with Gemini. Please verify your GEMINI_API_KEY.');
 }
 
 module.exports = { generateApplicationCode };
