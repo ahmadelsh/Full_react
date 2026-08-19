@@ -7,8 +7,16 @@ require('dotenv').config();
  * @returns {Promise<object>} - The generated code JSON
  */
 async function generateApplicationCode(schema, apiKey) {
-    if (!apiKey) throw new Error('No Gemini API key provided.');
-    const genAI = new GoogleGenerativeAI(apiKey);
+    const trimmedKey = (apiKey || '').trim();
+    if (!trimmedKey) {
+        throw new Error('No Gemini API key provided. Please enter your API key.');
+    }
+
+    if (!trimmedKey.startsWith('AIza')) {
+        throw new Error('Invalid API key format. Google AI Studio keys always start with "AIza...". Please get a free key from https://aistudio.google.com/app/apikey');
+    }
+
+    const genAI = new GoogleGenerativeAI(trimmedKey);
 
     const prompt = `
 You are an expert Principal Full-Stack Architect.
@@ -32,12 +40,13 @@ Generate modern React (functional components, hooks, Tailwind CSS classes) and N
 Ensure all code is production-ready.
 `;
 
-    // List of official Gemini models to try in order of speed and capability
+    // List of models to try in order
     const modelsToTry = [
-        'gemini-2.0-flash',
         'gemini-1.5-flash',
-        'gemini-2.0-flash-lite',
-        'gemini-1.5-pro'
+        'gemini-2.0-flash',
+        'gemini-1.5-flash-latest',
+        'gemini-1.5-pro',
+        'gemini-1.5-pro-latest'
     ];
 
     let lastError = null;
@@ -51,7 +60,6 @@ Ensure all code is production-ready.
                 contents: [{ role: 'user', parts: [{ text: prompt }] }],
                 generationConfig: {
                     temperature: 0.2,
-                    responseMimeType: 'application/json',
                 }
             });
 
@@ -69,14 +77,17 @@ Ensure all code is production-ready.
         } catch (error) {
             console.error(`[AI Engine] Model ${modelName} failed:`, error.message);
             lastError = error;
-            // If it's an invalid key, don't keep trying models with the same broken key
+
             if (error.message.includes('API key not valid') || error.message.includes('API_KEY_INVALID') || error.message.includes('401')) {
-                throw new Error('Your Gemini API key is invalid. Please check your key in settings.');
+                throw new Error('Your Gemini API key is invalid. Please get a valid key starting with "AIza..." from Google AI Studio.');
+            }
+            if (error.message.includes('404') && error.message.includes('not found for API version')) {
+                throw new Error('This API key does not have access to the Generative Language API. Please create a key from https://aistudio.google.com/app/apikey');
             }
         }
     }
 
-    throw new Error(lastError?.message || 'Failed to generate code with Gemini. Please try again.');
+    throw new Error(lastError?.message || 'Failed to generate code with Gemini. Please verify your API key at Google AI Studio.');
 }
 
 module.exports = { generateApplicationCode };

@@ -114,6 +114,11 @@ export default function GeneratorPage() {
 
     const saveApiKey = (key) => {
         const trimmed = key.trim();
+        if (trimmed && !trimmed.startsWith('AIza')) {
+            setMessage('Warning: Google AI Studio keys start with "AIza...". Please verify your key at https://aistudio.google.com/app/apikey');
+        } else {
+            setMessage('');
+        }
         setGeminiKey(trimmed);
         if (trimmed) {
             localStorage.setItem('gemini_api_key', trimmed);
@@ -125,6 +130,18 @@ export default function GeneratorPage() {
 
     const handleGenerate = async () => {
         if (!schema.trim()) return;
+        const currentKey = localStorage.getItem('gemini_api_key') || geminiKey;
+        if (!currentKey) {
+            setShowKeyInput(true);
+            setMessage('Please enter and save your Gemini API key above first.');
+            return;
+        }
+        if (!currentKey.startsWith('AIza')) {
+            setShowKeyInput(true);
+            setMessage('Invalid API key format. Google AI Studio keys must start with "AIza...".');
+            return;
+        }
+
         setIsGenerating(true);
         setMessage('');
         try {
