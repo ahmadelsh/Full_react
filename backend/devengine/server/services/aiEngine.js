@@ -1,15 +1,14 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 require('dotenv').config();
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
 /**
  * Ingests a raw database schema and outputs a structured React/Express JSON codebase.
  * @param {string|object} schema - The raw DB schema or JSON
  * @returns {Promise<object>} - The generated code JSON
  */
-async function generateApplicationCode(schema) {
-    const model = genAI.getGenerativeModel({ model: 'gemini-3.7-flash' });
+async function generateApplicationCode(schema, apiKey) {
+    if (!apiKey) throw new Error('No Gemini API key provided.');
+    const genAI = new GoogleGenerativeAI(apiKey);
 
     const prompt = `
 You are an expert Principal Full-Stack Architect.

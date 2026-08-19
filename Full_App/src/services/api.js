@@ -63,7 +63,10 @@ const request = async (endpoint, options = {}) => {
 
 
 export const generatorApi = {
-    generateCode: (schema) => request('/generate', { method: 'POST', body: JSON.stringify({ schema }) }),
+    generateCode: (schema) => {
+        const apiKey = localStorage.getItem('gemini_api_key');
+        return request('/generate', { method: 'POST', body: JSON.stringify({ schema, apiKey }) });
+    },
 };
 
 export const projectApi = {
