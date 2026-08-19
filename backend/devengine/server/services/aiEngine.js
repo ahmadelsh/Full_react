@@ -32,13 +32,12 @@ Generate modern React (functional components, hooks, Tailwind CSS classes) and N
 Ensure all code is production-ready.
 `;
 
-    // Fallback list of models to try if one is experiencing high demand
+    // List of official Gemini models to try in order of speed and capability
     const modelsToTry = [
-        'gemini-3.7-flash',
-        'gemini-3.6-flash',
-        'gemini-3.5-flash',
-        'gemini-flash-latest',
-        'gemini-2.5-flash'
+        'gemini-2.0-flash',
+        'gemini-1.5-flash',
+        'gemini-2.0-flash-lite',
+        'gemini-1.5-pro'
     ];
 
     let lastError = null;
@@ -58,18 +57,26 @@ Ensure all code is production-ready.
 
             const responseText = result.response.text();
             console.log(`[AI Engine] Success with ${modelName}!`);
-            return JSON.parse(responseText);
+            
+            // Clean markdown code fences if present
+            const cleanedText = responseText
+                .replace(/^```json\s*/i, '')
+                .replace(/^```\s*/i, '')
+                .replace(/\s*```$/i, '')
+                .trim();
+
+            return JSON.parse(cleanedText);
         } catch (error) {
             console.error(`[AI Engine] Model ${modelName} failed:`, error.message);
             lastError = error;
-            // Only retry if it's a 503 Service Unavailable or 429 Too Many Requests
-            if (!error.message.includes('503') && !error.message.includes('429')) {
-                throw error;
+            // If it's an invalid key, don't keep trying models with the same broken key
+            if (error.message.includes('API key not valid') || error.message.includes('API_KEY_INVALID') || error.message.includes('401')) {
+                throw new Error('Your Gemini API key is invalid. Please check your key in settings.');
             }
         }
     }
 
-    throw new Error('All Gemini models are currently experiencing high demand. Please try again later.');
+    throw new Error(lastError?.message || 'Failed to generate code with Gemini. Please try again.');
 }
 
 module.exports = { generateApplicationCode };

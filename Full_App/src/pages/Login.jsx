@@ -73,14 +73,14 @@ export default function Login() {
                 
                 <div className="relative z-10 max-w-md text-center flex flex-col items-center">
                     <div className="inline-flex p-3 bg-indigo-600/10 border border-indigo-500/30 rounded-2xl mb-6 shadow-lg shadow-indigo-500/10">
-                        <Dumbbell className="h-10 w-10 text-indigo-400 animate-pulse" />
+                        <Sparkles className="h-10 w-10 text-indigo-400 animate-pulse" />
                     </div>
                     
                     <h1 className="text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-indigo-300">
-                        Flex & Flow
+                        DevAi Studio
                     </h1>
                     <p className="mt-4 text-slate-400 text-lg leading-relaxed">
-                        Generate hyper-personalized workout schedules, track your health metrics, and reach your fitness targets with AI-crafted programs.
+                        Compile database schemas into fully functional, production-ready React and Express web applications in seconds.
                     </p>
 
                     <div className="mt-12 space-y-6 text-left w-full">
@@ -89,8 +89,8 @@ export default function Login() {
                                 <Sparkles className="h-5 w-5" />
                             </div>
                             <div>
-                                <h4 className="font-semibold text-slate-200">AI Schedule Generator</h4>
-                                <p className="text-sm text-slate-400 mt-1">Tailored training regimens based on your specific physical stats and availability.</p>
+                                <h4 className="font-semibold text-slate-200">Schema to Full-Stack</h4>
+                                <p className="text-sm text-slate-400 mt-1">Provide SQL DDL or JSON tables to synthesize UI views, forms, and backend routes.</p>
                             </div>
                         </div>
 
@@ -99,8 +99,8 @@ export default function Login() {
                                 <CheckCircle2 className="h-5 w-5" />
                             </div>
                             <div>
-                                <h4 className="font-semibold text-slate-200">Instant Activation</h4>
-                                <p className="text-sm text-slate-400 mt-1">Start tracking workouts instantly. Create programs, log sets, and save progress.</p>
+                                <h4 className="font-semibold text-slate-200">Export & Showcase</h4>
+                                <p className="text-sm text-slate-400 mt-1">Download your generated projects as complete runnable ZIP bundles or showcase them publicly.</p>
                             </div>
                         </div>
                     </div>
@@ -110,8 +110,8 @@ export default function Login() {
             {/* Right Side: Authentication form card */}
             <div className="flex-1 flex flex-col justify-center items-center p-6 sm:p-12 lg:w-1/2 relative bg-slate-950">
                 <div className="absolute top-10 left-10 lg:hidden flex items-center gap-2">
-                    <Dumbbell className="h-6 w-6 text-indigo-400" />
-                    <span className="font-bold text-lg tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-white to-indigo-400">Flex & Flow</span>
+                    <Sparkles className="h-6 w-6 text-indigo-400" />
+                    <span className="font-bold text-lg tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-white to-indigo-400">DevAi</span>
                 </div>
 
                 <div className="w-full max-w-md space-y-8">

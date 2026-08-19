@@ -127,14 +127,14 @@ router.put('/update-profile', async (req, res) => {
         
         const updateData = {};
         if (username) {
-            updateData.data = { username };
+            updateData.user_metadata = { username };
         }
         if (password) {
             updateData.password = password;
         }
         
         if (username || password) {
-            const { data: updatedUser, error: updateError } = await supabase.auth.updateUser(updateData);
+            const { error: updateError } = await supabase.auth.admin.updateUserById(user.id, updateData);
             if (updateError) {
                 return res.status(400).json({ error: updateError.message });
             }

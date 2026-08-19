@@ -44,7 +44,7 @@ const getPublicProjects = async (req, res) => {
     try {
         const { data, error } = await supabase
             .from('projects')
-            .select(`id, title, description, created_at, is_published`)
+            .select(`id, title, description, created_at, is_published, profiles(username, avatar_url)`)
             .eq('is_published', true)
             .order('created_at', { ascending: false });
 
@@ -67,7 +67,7 @@ const getMyProjects = async (req, res) => {
 
         const { data, error } = await supabase
             .from('projects')
-            .select(`id, title, description, created_at, is_published`)
+            .select(`id, title, description, created_at, is_published, profiles(username, avatar_url)`)
             .eq('user_id', user.id)
             .order('created_at', { ascending: false });
 

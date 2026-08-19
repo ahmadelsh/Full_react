@@ -9,14 +9,24 @@ export default function PublishedAppView() {
     const [project, setProject] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isRetrying, setIsRetrying] = useState(false);
 
     useEffect(() => {
-        const fetchProject = async () => {
+        const fetchProject = async (attempt = 1) => {
             try {
                 const res = await projectApi.getProjectById(id);
                 setProject(res.project);
+                setError(null);
+                setIsRetrying(false);
             } catch (err) {
-                setError(err.message);
+                if (attempt < 6) {
+                    setIsRetrying(true);
+                    setError(`Server is waking up, please wait... (${attempt}/6)`);
+                    setTimeout(() => fetchProject(attempt + 1), 10000);
+                } else {
+                    setIsRetrying(false);
+                    setError(err.message || 'Failed to load project.');
+                }
             } finally {
                 setLoading(false);
             }
@@ -24,9 +34,32 @@ export default function PublishedAppView() {
         fetchProject();
     }, [id]);
 
-    if (loading) return <div className="p-8 text-center">Loading project...</div>;
-    if (error) return <div className="p-8 text-center text-red-500">Error: {error}</div>;
-    if (!project) return <div className="p-8 text-center">Project not found.</div>;
+    if (loading) return <div className="p-8 text-center text-gray-500 animate-pulse">Loading project architecture...</div>;
+    
+    if (error && !isRetrying) {
+        return (
+            <div className="max-w-2xl mx-auto p-8 text-center">
+                <div className="p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl mb-4 text-sm font-medium">
+                    {error}
+                </div>
+                <Link to="/" className="text-brand-500 hover:text-brand-700 font-semibold text-sm">
+                    &larr; Return to Showcase
+                </Link>
+            </div>
+        );
+    }
+
+    if (isRetrying) {
+        return (
+            <div className="max-w-2xl mx-auto p-8 text-center">
+                <div className="p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl mb-4 text-sm font-medium animate-pulse">
+                    {error}
+                </div>
+            </div>
+        );
+    }
+
+    if (!project) return <div className="p-8 text-center text-gray-500">Project not found.</div>;
 
     return (
         <div className="max-w-6xl mx-auto p-6 h-[calc(100vh-80px)] flex flex-col">
