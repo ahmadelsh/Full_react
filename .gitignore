@@ -1,0 +1,6 @@
+# Environment files — never commit secrets
+backend/devengine/server/.env
+backend/devengine/server/.env.local
+
+# Node modules
+node_modules/
