@@ -7,12 +7,12 @@ require('dotenv').config();
  * @returns {Promise<object>} - The generated code JSON
  */
 async function generateApplicationCode(schema, apiKey) {
-    const trimmedKey = (apiKey || '').trim();
-    if (!trimmedKey) {
-        throw new Error('No Gemini API key provided. Please enter your API key.');
+    const key = (apiKey || process.env.GEMINI_API_KEY || '').trim();
+    if (!key) {
+        throw new Error('Server Gemini API key is not configured. Please set GEMINI_API_KEY on the backend.');
     }
 
-    const genAI = new GoogleGenerativeAI(trimmedKey);
+    const genAI = new GoogleGenerativeAI(key);
 
     const prompt = `
 You are an expert Principal Full-Stack Architect.

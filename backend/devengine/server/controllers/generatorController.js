@@ -6,9 +6,6 @@ const generateCode = async (req, res) => {
     if (!schema) {
         return res.status(400).json({ error: 'Schema is required' });
     }
-    if (!apiKey) {
-        return res.status(400).json({ error: 'Gemini API key is required. Please add your key in Settings.' });
-    }
 
     try {
         const generatedCode = await generateApplicationCode(schema, apiKey);
