@@ -7,8 +7,20 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Check if user is already logged in on page load
+    // Check if user is already logged in on page load or returning from OAuth redirect
     useEffect(() => {
+        // Handle OAuth token redirect from Supabase (#access_token=...)
+        const hash = window.location.hash;
+        if (hash && hash.includes('access_token=')) {
+            const params = new URLSearchParams(hash.substring(1));
+            const accessToken = params.get('access_token');
+            if (accessToken) {
+                localStorage.setItem('token', accessToken);
+                // Clean hash from URL bar
+                window.history.replaceState(null, '', window.location.pathname);
+            }
+        }
+
         const token = localStorage.getItem('token');
         if (token) {
             authApi.getCurrentUser()
@@ -27,6 +39,13 @@ export const AuthProvider = ({ children }) => {
         }
     }, []);
 
+    // Login with Google (Supabase OAuth)
+    const loginWithGoogle = () => {
+        const supabaseUrl = 'https://edkjxeygzorlowxggnnd.supabase.co';
+        const redirectUrl = window.location.origin;
+        window.location.href = `${supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectUrl)}`;
+    };
+
     // Login function
     const login = async (credentials) => {
         const response = await authApi.login(credentials);
@@ -39,8 +58,6 @@ export const AuthProvider = ({ children }) => {
     // Signup function
     const signup = async (userData) => {
         const response = await authApi.signup(userData);
-        // Supabase admin.createUser doesn't return a session automatically.
-        // User needs to login after registering.
         return response.data;
     };
 
@@ -51,7 +68,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, signup, logout, loading }}>
+        <AuthContext.Provider value={{ user, login, signup, logout, loginWithGoogle, loading }}>
             {!loading && children}
         </AuthContext.Provider>
     );
