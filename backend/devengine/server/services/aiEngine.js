@@ -12,10 +12,6 @@ async function generateApplicationCode(schema, apiKey) {
         throw new Error('No Gemini API key provided. Please enter your API key.');
     }
 
-    if (!trimmedKey.startsWith('AIza')) {
-        throw new Error('Invalid API key format. Google AI Studio keys always start with "AIza...". Please get a free key from https://aistudio.google.com/app/apikey');
-    }
-
     const genAI = new GoogleGenerativeAI(trimmedKey);
 
     const prompt = `
